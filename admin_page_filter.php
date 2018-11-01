@@ -19,7 +19,7 @@ function _load_edit_function_query( $query ){
     
     $possible_post_types = array( 'page' );
 
-    if( !empty( $pagenow ) && $pagenow == 'edit.php' && in_array( $post_type , $possible_post_types ) ) {
+    if( !empty( $pagenow ) && $pagenow == 'edit.php' && in_array( $post_type, $possible_post_types ) ) {
 
         if( isset( $_GET['FILTER_BY_SECTION'] ) ){
 
@@ -32,7 +32,9 @@ function _load_edit_function_query( $query ){
             $children = get_pages( array( 'depth' => -1, 'child_of' => $parent_id ) );
 
             foreach( $children as $child ){
+
                 array_push( $posts_in, $child->ID );
+
             }
 
             $query->query_vars['post__in'] = $posts_in;
@@ -46,21 +48,15 @@ function _load_edit_function_query( $query ){
 function _filter_by_page_parent(){
 
     global $wpdb;
+    global $post_type;
+
+    $field_name = 'FILTER_BY_SECTION';
 
     // check for post type 'page'
 
-    $type       = 'page';
-    $field_name = 'FILTER_BY_SECTION';
+    if( 'page' == $post_type ){
 
-    if(isset($_GET['post_type'])){
-
-        $type = $_GET['post_type'];
-
-    }
-
-    if( 'page' == $type ){
-
-        $sql = "SELECT ID, post_title FROM " . $wpdb->posts . " WHERE post_type = 'page' AND post_parent = 0";
+        $sql = "SELECT ID, post_title FROM " . $wpdb->posts . " WHERE post_type = 'page' AND post_parent = 0"; /* only grab top level pages */
         $results = $wpdb->get_results( $sql, ARRAY_N );
 
         if( count( $results ) ):
