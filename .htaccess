@@ -1,0 +1,92 @@
+# secure wp
+
+# Protect .htaccess
+<files ~ "^.*\.([Hh][Tt][Aa])">
+order allow,deny
+deny from all
+satisfy all
+</files>
+
+# Protect wp-config.php
+<files wp-config.php>
+order allow,deny
+deny from all
+</files>
+
+# Protect error_log
+<files error_log>
+order allow,deny
+deny from all
+</files>
+
+# Protect against SQL Injection
+# @ https://wp-mix.com/protect-against-sql-injection/
+<IfModule mod_rewrite.c>
+RewriteCond %{QUERY_STRING} (eval\() [NC,OR]
+RewriteCond %{QUERY_STRING} (javascript:)(.*)(;) [NC,OR]
+RewriteCond %{QUERY_STRING} (base64_encode)(.*)(\() [NC,OR]
+RewriteCond %{QUERY_STRING} (GLOBALS|REQUEST)(=|\[|%) [NC,OR]
+RewriteCond %{QUERY_STRING} (<|%3C)(.*)script(.*)(>|%3) [NC,OR]
+RewriteCond %{QUERY_STRING} (\\|\.\.\.|\.\./|~|`|<|>|\|) [NC,OR]
+RewriteCond %{QUERY_STRING} mosConfig_[a-zA-Z_]{1,22}(=|%3D) [NC,OR]
+RewriteCond %{QUERY_STRING} (boot\.ini|etc/passwd|self/environ) [NC,OR]
+RewriteCond %{QUERY_STRING} (\'|\")(.*)(drop|exec|insert|md5|select|union) [NC]
+RewriteRule .* - [F]
+</IfModule>
+
+# Block access to includes folder
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^wordpress/wp-admin/includes/ - [F,L]
+RewriteRule !^wordpress/wp-includes/ - [S=3]
+RewriteRule ^wordpress/wp-includes/[^/]+\.php$ - [F,L]
+RewriteRule ^wordpress/wp-includes/js/tinymce/langs/.+\.php - [F,L]
+RewriteRule ^wordpress/wp-includes/theme-compat/ - [F,L]
+</IfModule>
+
+# --------------------------------------------------------------------------------------------
+#   Ultimate hotlink protection - IMPORTANT: Change »?domain\« in line 361 to your domain name
+#   Example: ?andreas-hecht\ ### if you do not use https, change https in line 361 to http
+# --------------------------------------------------------------------------------------------
+
+#<IfModule mod_rewrite.c>
+#RewriteEngine on
+#RewriteCond %{HTTP_REFERER}     !^$
+#RewriteCond %{REQUEST_FILENAME} -f
+#RewriteCond %{REQUEST_FILENAME} \.(gif|jpe?g?|png)$           [NC]
+#RewriteCond %{HTTP_REFERER}     !^https?://([^.]+\.)?q30staged.ca\. [NC]
+#RewriteRule \.(gif|jpe?g?|png)$                             - [F,NC,L]
+#</ifModule>
+
+# ----------------------------------------------------------------------
+#   Switch off the security risk XML-RPC interface completely
+# ----------------------------------------------------------------------
+
+### @see https://digwp.com/2009/06/xmlrpc-php-security/
+
+<Files xmlrpc.php>
+Order Deny,Allow
+Deny from all
+</Files>
+
+# Restrict Direct Access to Plugin and Theme PHP files
+#RewriteCond %{REQUEST_URI} !^/wordpress/wp-content/plugins/file/to/exclude\.php
+#RewriteCond %{REQUEST_URI} !^/wordpress/wp-content/plugins/directory/to/exclude/
+#RewriteRule wordpresswp-content/plugins/(.*\.php)$ - [R=404,L]
+#RewriteCond %{REQUEST_URI} !^/wordpress/wp-content/themes/file/to/exclude\.php
+#RewriteCond %{REQUEST_URI} !^/wordpress/wp-content/themes/directory/to/exclude/
+#RewriteRule wordpresswp-content/themes/(.*\.php)$ - [R=404,L]
+
+# BEGIN WordPress
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+
+# END WordPress
